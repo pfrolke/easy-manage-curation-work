@@ -15,35 +15,58 @@
  */
 package nl.knaw.dans.easy.curationwork
 
-import java.nio.file.Paths
-
+import better.files.File
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import resource._
 
 import scala.language.reflectiveCalls
 import scala.util.control.NonFatal
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Try }
 
 object Command extends App with DebugEnhancedLogging {
   type FeedBackMessage = String
 
-  val configuration = Configuration(Paths.get(System.getProperty("app.home")))
+  val configuration = Configuration(File(System.getProperty("app.home")))
   val commandLine: CommandLineOptions = new CommandLineOptions(args, configuration) {
     verify()
   }
-  val app = new EasyManageCurationWorkApp(configuration)
+  val commonCurationArea = File(configuration.properties.getString("curation.common.directory"))
+  val managerCurationDirString = configuration.properties.getString("curation.personal.directory")
+  val datamanagerProperties = configuration.datamanagers
 
-  runSubcommand(app)
-    .doIfSuccess(msg => println(s"OK: $msg"))
+  val reporter = new Report(commonCurationArea, managerCurationDirString)
+  val assigner = new Assign(commonCurationArea, managerCurationDirString, datamanagerProperties)
+  val unassigner = new Unassign(commonCurationArea, managerCurationDirString)
+
+  runSubcommand()
+    .doIfSuccess(msg => println(s"$msg"))
     .doIfFailure { case e => logger.error(e.getMessage, e) }
     .doIfFailure { case NonFatal(e) => println(s"FAILED: ${ e.getMessage }") }
 
-  private def runSubcommand(app: EasyManageCurationWorkApp): Try[FeedBackMessage] = {
-    commandLine.subcommand
-      .collect {
-        case cmd @ commandLine.list => Success("Message") // handle list
-      }
-      .getOrElse(Failure(new IllegalArgumentException(s"Unknown command: ${ commandLine.subcommand }")))
+  private def runSubcommand(): Try[FeedBackMessage] = {
+    if (!commonCurationArea.exists)
+      Try(s"Error: No common curation area found.")
+    else
+      commandLine.subcommand
+        .collect {
+          case cmd @ commandLine.list =>
+            if (validDatamanager(cmd.datamanager.toOption)) reporter.listCurationWork(cmd.datamanager.toOption)
+            else Try(s"Error: Unknown datamanager ${ cmd.datamanager() } (missing in datamanager properties file)")
+          case cmd @ commandLine.assign =>
+            if (userIdAndEmailExist(cmd.datamanager())) assigner.assignCurationWork(cmd.datamanager(), cmd.bagId())
+            else Try(s"Error: Easy-userid and/or email address of datamanager ${ cmd.datamanager() } missing in datamanager properties file")
+          case cmd @ commandLine.unassign =>
+            if (validDatamanager(cmd.datamanager.toOption)) unassigner.unassignCurationWork(cmd.datamanager.toOption, cmd.bagId.toOption)
+            else Try(s"Unknown datamanager ${ cmd.datamanager() } (missing in datamanager properties file)")
+        }
+        .getOrElse(Failure(new IllegalArgumentException(s"Unknown command: ${ commandLine.subcommand }")))
+  }
+
+  private def userIdAndEmailExist(datamanager: DatamanagerId): Boolean = {
+    datamanagerProperties.containsKey(datamanager + EASY_USER_ID_SUFFIX) && datamanagerProperties.containsKey(datamanager + EMAIL_SUFFIX)
+  }
+
+  private def validDatamanager(datamanager: Option[DatamanagerId]): Boolean = {
+    datamanager.isEmpty || datamanagerProperties.containsKey(datamanager.get + EASY_USER_ID_SUFFIX)
   }
 }

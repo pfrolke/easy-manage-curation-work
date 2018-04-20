@@ -15,10 +15,18 @@
  */
 package nl.knaw.dans.easy.curationwork
 
-import scala.util.{ Success, Try }
+import better.files.File
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-class EasyManageCurationWorkApp(configuration: Configuration)  {
+import scala.language.postfixOps
 
+class EasyManageCurationWorkApp(val commonCurationDir: File, val managerCurationDirString: String) extends DebugEnhancedLogging {
 
+  def getCurationDirectory(datamanager: Option[DatamanagerId]): File = {
+    datamanager.map(getManagerCurationDir).getOrElse(commonCurationDir)
+  }
 
+  private def getManagerCurationDir(datamanager: DatamanagerId): File = {
+    File(managerCurationDirString.replace("$unix-user", datamanager))
+  }
 }
