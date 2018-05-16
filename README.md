@@ -15,11 +15,11 @@ ARGUMENTS
 --------
    
      Options:
-              --help      Show help message
-              --version   Show version of this program
+          -h, --help      Show help message
+          -v, --version   Show version of this program
         
         Subcommand: list - Lists the current curation tasks.
-              --help   Show help message
+          -h, --help   Show help message
         
          trailing arguments:
           easy-datamanager (not required)   Datamanager, whose to-be-curated deposits
@@ -28,7 +28,7 @@ ARGUMENTS
         ---
         
         Subcommand: assign - Assigns curation task to a datamanager.
-              --help   Show help message
+          -h, --help   Show help message
         
          trailing arguments:
           easy-datamanager (required)   Datamanager, to whom the deposit will be
@@ -37,7 +37,7 @@ ARGUMENTS
         ---
         
         Subcommand: unassign - Unassigns curation tasks.
-              --help   Show help message
+          -h, --help   Show help message
         
          trailing arguments:
           easy-datamanager (not required)   Datamanager, from whom the deposit will be
@@ -47,43 +47,8 @@ ARGUMENTS
                                             not specified, all deposits of the
                                             datamanager are unassigned.
         ---
-        
-        
-        ScalaTestFailureLocation: nl.knaw.dans.easy.curationwork.ReadmeSpec at (ReadmeSpec.scala:42)
-        org.scalatest.exceptions.TestFailedException: README.md did not contain:       --help      Show help message
-              --version   Show version of this program
-        
-        Subcommand: list - Lists the current curation tasks.
-              --help   Show help message
-        
-         trailing arguments:
-          easy-datamanager (not required)   Datamanager, whose to-be-curated deposits
-                                            are listed. If not specified, deposits from
-                                            the common curation area are listed.
-        ---
-        
-        Subcommand: assign - Assigns curation task to a datamanager.
-              --help   Show help message
-        
-         trailing arguments:
-          easy-datamanager (required)   Datamanager, to whom the deposit will be
-                                        assigned.
-          bag-id (required)             bag id of the deposit to be assigned.
-        ---
-        
-        Subcommand: unassign - Unassigns curation tasks.
-              --help   Show help message
-        
-         trailing arguments:
-          easy-datamanager (not required)   Datamanager, from whom the deposit will be
-                                            unassigned. If not specified, datamanager is
-                                            the current user.
-          bag-id (not required)             bag id of the deposit to be unassigned. If
-                                            not specified, all deposits of the
-                                            datamanager are unassigned.
-        ---
-    
-     
+
+
 DESCRIPTION
 -----------
 
